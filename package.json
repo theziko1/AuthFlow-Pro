@@ -1,0 +1,16 @@
+{
+  "private":true,
+  "workspaces":[
+    "client",
+    "server"
+  ],
+  "scripts": {
+    "client" : "cd client && npm run dev",
+    "server" : "cd server && npm start",
+    "dev": "concurrently \"npm run client\" \"npm run server\""
+  },
+  "dependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
+
