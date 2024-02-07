@@ -1,7 +1,7 @@
 import { Document, HydratedDocument, Model, model, Schema } from "mongoose";
 
 
-interface IPermission extends Document {
+export interface IPermission extends Document {
     name : String
 }
 
