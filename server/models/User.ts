@@ -1,15 +1,20 @@
-import  { Document, HydratedDocument, Model, Schema, Types } from "mongoose";
+import  { Document, HydratedDocument, Model, model, Schema, Types } from "mongoose";
 
-export interface UserSchema extends Document {
+export interface IUser extends Document {
       username : String,
       email : String,
       password : String,
       roles : Types.ObjectId
 }
 
-export type UserDocument = HydratedDocument<UserSchema>
+export type UserDocument = HydratedDocument<IUser>
 
-const UserSchema = new Schema<UserSchema>({
+export interface UserModel extends Model<IUser> {
+    build() :void
+}
+
+
+const UserSchema = new Schema<IUser,UserModel>({
     username : {
         type : String,
         required : true
@@ -28,6 +33,16 @@ const UserSchema = new Schema<UserSchema>({
         ref : 'Roles',
         required : true
     }]
+
 })
 
-export const User : UserDocument = new Model('User',UserSchema)
+UserSchema.static("build",function () {
+    console.log("test User schema")
+})
+
+
+export const User  = model<IUser,UserModel>('User',UserSchema)
+
+
+
+User.build()
