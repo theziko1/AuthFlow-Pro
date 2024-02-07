@@ -1,7 +1,8 @@
-import express , { Express, Request, Response  }  from "express";
+import express , { Express}  from "express";
 import { config } from "dotenv";
 import { connect } from "mongoose";
 import morgan from "morgan"
+import cookieParser from 'cookie-parser'
 
 
 // config
@@ -13,6 +14,7 @@ const PORT = process.env.PORT
 // middlewares
 app.use(morgan("combined"))
 app.use(express.json())
+app.use(cookieParser())
 // Routes 
 
 // connect of database

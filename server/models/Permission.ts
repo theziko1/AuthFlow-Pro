@@ -1,19 +1,26 @@
-import { Document, HydratedDocument, Model, Schema } from "mongoose";
+import { Document, HydratedDocument, Model, model, Schema } from "mongoose";
 
 
-interface PermissionSchema extends Document {
+interface IPermission extends Document {
     name : String
 }
 
-export type PermissionDocument = HydratedDocument<PermissionSchema>
+export type PermissionDocument = HydratedDocument<IPermission>
 
-const PermissionSchema = new Schema<PermissionSchema>({
+export interface PermissionModel extends Model<IPermission> {
+    build() :void
+}
+
+const PermissionSchema = new Schema<IPermission,PermissionModel>({
     name : {
         type : String,
-        enum : ["CREATE-USER","READ-USER","UPDATE-USER","DELETE-USER"],
-        default : "READ-USER",
+        unique : true,
         required : true
     }
 })
 
-export const Permission : PermissionDocument = new Model('Permission',PermissionSchema)
+PermissionSchema.static("build",function () {
+    console.log("test Permission schema")
+})
+
+export const Permission  = model<IPermission,PermissionModel>('Permission',PermissionSchema)

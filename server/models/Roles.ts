@@ -1,18 +1,20 @@
-import { Document, HydratedDocument, Model, Schema, Types } from "mongoose";
+import { Document, HydratedDocument, model, Model , Schema, Types } from "mongoose";
 
-export interface RolesSchema extends Document {
+export interface IRoles extends Document {
      name : String,
      permissions : Types.ObjectId
 }
 
 
-export type RolesDocument = HydratedDocument<RolesSchema>
+export type RolesDocument = HydratedDocument<IRoles>
 
- const RolesSchema = new Schema<RolesSchema>({
+export interface RoleModel extends Model<IRoles> {
+    build() : void
+}
+
+ const RolesSchema = new Schema<IRoles,RoleModel>({
     name : {
         type : String,
-        enum : ["SUPER-ADMIN","ADMIN","USER"],
-        default : "USER",
         required : true
     },
     permissions :[{
@@ -21,4 +23,11 @@ export type RolesDocument = HydratedDocument<RolesSchema>
     }]
  })
 
- export const Roles : RolesDocument = new Model('Role',RolesSchema)
+ RolesSchema.static("build",function () {
+    console.log("test Roles schema")
+})
+
+ export const Roles = model<IRoles,RoleModel>('Role',RolesSchema)
+
+
+Roles.build()
