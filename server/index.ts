@@ -17,11 +17,12 @@ app.use(express.json())
 
 // connect of database
 connect(process.env.MONGO_URL as string)
-try {
+.then(()=>{
     console.log("connected to the database")
-} catch (error) {
+}) 
+.catch ((error)=> {
     console.log("connexion failed",error) 
-}
+})
 
 // listen of app 
 app.listen(PORT,()=>{
