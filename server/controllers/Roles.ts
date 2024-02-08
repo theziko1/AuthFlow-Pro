@@ -20,7 +20,11 @@ export const AddRule = async (req : Request, res : Response) => {
 
 export const GetRules = async (req : Request, res : Response) => {
     try {
-      const RulesFound = await Roles.find().populate('Role')
+      const RulesFound = await Roles.find().populate({
+        path: 'permissions',
+        select: '-_id -__v' ,
+         
+    })
       if (RulesFound) {
         return  res.status(200).json({success:true ,message:"Successfully fetched Rules",RulesFound})
           
@@ -36,7 +40,11 @@ export const GetRules = async (req : Request, res : Response) => {
 
 export const GetRule = async (req : Request, res : Response) => {
     try {
-      const RuleFound = await Roles.findById(req.params.id).populate('Role')
+      const RuleFound = await Roles.findById(req.params.id).populate({
+        path: 'permissions',
+        select: '-_id -__v' ,
+         
+    })
       if (RuleFound) {
         return  res.status(200).json({success:true ,message:"Successfully fetched Rule",RuleFound})
           

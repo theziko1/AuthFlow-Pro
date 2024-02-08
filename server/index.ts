@@ -4,6 +4,9 @@ import { connect } from "mongoose";
 import morgan from "morgan"
 import cookieParser from 'cookie-parser'
 import cors from 'cors'
+import UserRoutes from "./routes/User";
+import RuleRoutes from "./routes/Roles";
+import PermissionRoutes from "./routes/Permission";
 
 
 // config
@@ -13,7 +16,7 @@ const app : Express = express()
 // init PORT
 const PORT = process.env.PORT
 // middlewares
-app.use(morgan("combined"))
+app.use(morgan("tiny"))
 app.use(express.json())
 app.use(cookieParser())
 app.use(cors({
@@ -21,7 +24,9 @@ app.use(cors({
     origin : "http://localhost:5173",
 }))
 // Routes 
-
+app.use("/",UserRoutes)
+app.use("/",RuleRoutes)
+app.use("/",PermissionRoutes)
 // connect of database
 connect(process.env.MONGO_URL as string)
 .then(()=>{

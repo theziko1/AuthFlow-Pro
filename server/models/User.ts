@@ -4,7 +4,7 @@ export interface IUser extends Document {
       username : String,
       email : String,
       password : String,
-      roles : Types.ObjectId
+      roles : Types.ObjectId[]
 }
 
 export type UserDocument = HydratedDocument<IUser>
