@@ -2,28 +2,44 @@ import { NextFunction, Request , Response } from "express"
 import { User } from "../models/User";
 import jwt, { JwtPayload } from "jsonwebtoken"
 import dotenv from "dotenv"
+import { RolesDocument } from "../models/Roles";
 
 dotenv.config()
 
-export interface CustomRequest extends Request {
-    token: string | JwtPayload;
-   }
 
-export const verifyToken = (req : Request, res : Response, next : NextFunction) => {
-    const token = req.cookies.token
-    if (!token) {
-        return res.status(401).json({ success : false ,error : "Acces denied"})
-    }
-    try {
-        const decoded = jwt.verify(token, process.env.SECRET_KEY as string);
-        (req as CustomRequest).token = decoded;
-        
-        
-        next();
-    } catch (error) {
-        res.status(401).json({ success : false , error: 'Invalid token' });
-    }
-}
+
+interface CustomRequest extends Request {
+    user?: RolesDocument; 
+}   
+
+   
+export default function authorize(roles: string[] = [], permissions: string[] = []) {
+       return (req: CustomRequest, res: Response, next: NextFunction) => {
+           const token = req.cookies.token;
+           if (!token) {
+               return res.status(401).json({success : false, message: 'Unauthorized' });
+           }
+           jwt.verify(token, process.env.SECRET_KEY as string, (err: any, user: any) => {
+               if (err) {
+                   return res.status(403).json({success : false, message: 'Forbidden' });
+               }
+               if (roles && roles.length > 0 && !roles.includes(user.roles)) {
+                   return res.status(403).json({success : false, message: 'Insufficient role' });
+               }
+               if (permissions && permissions.length > 0) {
+                   const userPermissions = user.permissions.map((permission: any) => permission.name);
+                   if (!permissions.some(permission => userPermissions.includes(permission))) {
+                       return res.status(403).json({success : false, message: 'Insufficient permission' });
+                   }
+               }
+               req.user = user;
+               next();
+           });
+       };
+   }
+   
+
+
 
 
 

@@ -17,7 +17,8 @@ export interface UserModel extends Model<IUser> {
 const UserSchema = new Schema<IUser,UserModel>({
     username : {
         type : String,
-        required : true
+        required : true,
+        unique : true,
     },
     email : {
         type : String,

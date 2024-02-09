@@ -1,9 +1,14 @@
+import { validatePermission } from "../middlewares/Validate";
 import { Permission } from "../models/Permission";
 import { Request , Response } from "express";
 
 // Créer une nouvelle permission
 export const  createPermission = async(req : Request, res : Response)  => {
     try {
+      const valid = validatePermission(req.body)
+         if (valid.error) {
+            return res.status(401).json({error : valid.error.message})
+         }
       const { name, description } = req.body;
   
       const existingPermission = await Permission.findOne({ name });

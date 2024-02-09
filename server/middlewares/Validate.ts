@@ -6,9 +6,9 @@ import { IPermission } from "../models/Permission";
 
 // login for a User
 
-export const validateLogin = (login : {email : string , password : string}) => {
+export const validateLogin = (login : {username : string , password : string}) => {
    const loginSchema = Joi.object({
-      email : Joi.string().email().required(),
+    username : Joi.string().min(4).max(10).required(),
       password : Joi.string().min(8).max(18).required()
    });
 

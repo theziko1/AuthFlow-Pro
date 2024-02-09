@@ -1,3 +1,4 @@
+import { validateRules } from "../middlewares/Validate";
 import { Roles } from "../models/Roles";
 import { Request , Response } from "express";
 
@@ -5,6 +6,10 @@ import { Request , Response } from "express";
 
 export const AddRule = async (req : Request, res : Response) => {
       try {
+        const valid = validateRules(req.body)
+         if (valid.error) {
+            return res.status(401).json({error : valid.error.message})
+         }
         const { name , permissions } =req.body
         await Roles.create({
             name,
