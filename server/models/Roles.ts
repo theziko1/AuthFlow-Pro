@@ -15,7 +15,8 @@ export interface RoleModel extends Model<IRoles> {
  const RolesSchema = new Schema<IRoles,RoleModel>({
     name : {
         type : String,
-        required : true
+        required : true,
+        unique : true
     },
     permissions :[{
         type : Schema.Types.ObjectId,

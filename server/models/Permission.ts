@@ -24,3 +24,6 @@ PermissionSchema.static("build",function () {
 })
 
 export const Permission  = model<IPermission,PermissionModel>('Permission',PermissionSchema)
+
+
+Permission.build()

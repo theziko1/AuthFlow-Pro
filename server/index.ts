@@ -7,6 +7,8 @@ import cors from 'cors'
 import UserRoutes from "./routes/User";
 import RuleRoutes from "./routes/Roles";
 import PermissionRoutes from "./routes/Permission";
+import AssignRouter from "./routes/authorization";
+
 
 
 // config
@@ -16,7 +18,7 @@ const app : Express = express()
 // init PORT
 const PORT = process.env.PORT
 // middlewares
-app.use(morgan("tiny"))
+app.use(morgan("dev"))
 app.use(express.json())
 app.use(cookieParser())
 app.use(cors({
@@ -27,6 +29,8 @@ app.use(cors({
 app.use("/",UserRoutes)
 app.use("/",RuleRoutes)
 app.use("/",PermissionRoutes)
+app.use("/",AssignRouter)
+
 // connect of database
 connect(process.env.MONGO_URL as string)
 .then(()=>{

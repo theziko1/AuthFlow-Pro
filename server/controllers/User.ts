@@ -3,11 +3,17 @@ import { Request , Response } from "express";
 import { genSalt , hash , compare} from "bcrypt"
 import jwt from "jsonwebtoken"
 import { config } from "dotenv";
+import { validateLogin, validateRegister } from "../middlewares/Validate";
+
 
 config()
 
 export const SignUp = async (req : Request, res : Response) => {
     try {
+      const valid = validateRegister(req.body)
+      if (valid.error) {
+         return res.status(401).json({error : valid.error.message})
+      }
         const { username , email , password} = req.body
         const salt = await genSalt(10)
         const hashPassword = await hash(password,salt)
@@ -23,6 +29,10 @@ export const SignUp = async (req : Request, res : Response) => {
 
 export const SignIn = async (req : Request , res : Response) => {
        try {
+         const valid = validateLogin(req.body)
+         if (valid.error) {
+            return res.status(401).json({error : valid.error.message})
+         }
         const { username , password} = req.body
         const UserLogin = await User.findOne({ username })
         if(!UserLogin) {
@@ -35,7 +45,11 @@ export const SignIn = async (req : Request , res : Response) => {
           const token = jwt.sign({ userId: UserLogin._id }, process.env.SECRET_KEY as string, {
              expiresIn: '6h',
              });
-          res.cookie('token',token)   
+          res.cookie('token',token,{
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            maxAge: 86400000,
+          })   
           res.status(200).json({ success : true, message : "login successfully", data : token}) 
        } catch (error) {
         res.status(500).json({error : "login failed "+error})
