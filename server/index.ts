@@ -8,6 +8,7 @@ import UserRoutes from "./routes/User";
 import RuleRoutes from "./routes/Roles";
 import PermissionRoutes from "./routes/Permission";
 import AssignRouter from "./routes/authorization";
+import swaggerDocs from './docs/swagger';
 
 
 
@@ -39,6 +40,8 @@ connect(process.env.MONGO_URL as string)
 .catch ((error)=> {
     console.log("connexion failed",error) 
 })
+
+swaggerDocs(app, PORT as string)
 
 // listen of app 
 app.listen(PORT,()=>{
