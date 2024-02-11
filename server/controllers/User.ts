@@ -12,7 +12,7 @@ export const SignUp = async (req : Request, res : Response) => {
     try {
       const valid = validateRegister(req.body)
       if (valid.error) {
-         return res.status(401).json({error : valid.error.message})
+         return res.status(401).json({success : false ,error : valid.error.message})
       }
         const { username , email , password} = req.body
         const salt = await genSalt(10)
@@ -31,7 +31,7 @@ export const SignIn = async (req : Request , res : Response) => {
        try {
          const valid = validateLogin(req.body)
          if (valid.error) {
-            return res.status(401).json({error : valid.error.message})
+            return res.status(401).json({success : false ,error : valid.error.message})
          }
         const { username , password} = req.body
         const UserLogin = await User.findOne({ username })
@@ -42,7 +42,11 @@ export const SignIn = async (req : Request , res : Response) => {
           if (!MatchedPass) {
              return res.status(401).json({success : false, error : "Authentication failed"})
           }
-          const token = jwt.sign({ userId: UserLogin._id }, process.env.SECRET_KEY as string, {
+          const token = jwt.sign( {
+            userId: UserLogin.id,
+            username: UserLogin.username,
+            roles: UserLogin.roles, 
+        }, process.env.SECRET_KEY as string, {
              expiresIn: '6h',
              });
           res.cookie('token',token,{
@@ -52,7 +56,7 @@ export const SignIn = async (req : Request , res : Response) => {
           })   
           res.status(200).json({ success : true, message : "login successfully", data : token}) 
        } catch (error) {
-        res.status(500).json({error : "login failed "+error})
+        res.status(500).json({success : false ,error : "login failed "+error})
        }
 }
 

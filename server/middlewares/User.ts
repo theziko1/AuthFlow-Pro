@@ -1,40 +1,65 @@
 import { NextFunction, Request , Response } from "express"
 import { User } from "../models/User";
-import jwt, { JwtPayload } from "jsonwebtoken"
+import { Roles } from "../models/Roles";
+import { Permission } from "../models/Permission";
+import jwt from "jsonwebtoken"
 import dotenv from "dotenv"
-import { RolesDocument } from "../models/Roles";
+
+
+
 
 dotenv.config()
-
-
-
-interface CustomRequest extends Request {
-    user?: RolesDocument; 
-}   
+  
 
    
-export default function authorize(roles: string[] = [], permissions: string[] = []) {
-       return (req: CustomRequest, res: Response, next: NextFunction) => {
-           const token = req.cookies.token;
-           if (!token) {
-               return res.status(401).json({success : false, message: 'Unauthorized' });
-           }
-           jwt.verify(token, process.env.SECRET_KEY as string, (err: any, user: any) => {
-               if (err) {
-                   return res.status(403).json({success : false, message: 'Forbidden' });
-               }
-               if (roles && roles.length > 0 && !roles.includes(user.roles)) {
-                   return res.status(403).json({success : false, message: 'Insufficient role' });
-               }
-               if (permissions && permissions.length > 0) {
-                   const userPermissions = user.permissions.map((permission: any) => permission.name);
-                   if (!permissions.some(permission => userPermissions.includes(permission))) {
-                       return res.status(403).json({success : false, message: 'Insufficient permission' });
-                   }
-               }
-               req.user = user;
-               next();
-           });
+export default function authorize(roles: string[], permissions: string[] ) {
+       return async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            // Extract token from cookie
+            const token = req.cookies.token;
+            if (!token) {
+                return res.status(401).json({success : false , message: 'Unauthorized No Token' });
+            }
+
+            // Verify token and extract user information
+            const decodedToken: any = jwt.verify(token, process.env.SECRET_KEY as string);
+            const userId = decodedToken.userId;
+
+             // Fetch user from database using user ID
+             const user = await User.findById(userId);
+             if (!user) {
+                 return res.status(401).json({success : false , message: 'Unauthorized' });
+             }
+ 
+             // Fetch roles associated with the user
+             const userRoles = await Roles.find({ _id: { $in: user.roles } });
+             if (!userRoles || userRoles.length === 0) {
+                 return res.status(403).json({success : false , message: 'Forbidden: User has no roles' });
+             }
+ 
+              // Fetch permissions associated with user roles
+            const rolePermissionIds = userRoles.flatMap(role => role.permissions);
+            const userPermissions = await Permission.find({ _id: { $in: rolePermissionIds } });
+            const userPermissionNames = userPermissions.map(permission => permission.name);
+
+            // Check if user has at least one of the required roles
+            if (roles.length > 0 && !roles.some(role => userRoles.map(r => r.name).includes(role))) {
+                return res.status(403).json({success : false , message: 'Forbidden: Insufficient role' });
+            }
+
+            // Check if user has at least one of the required permissions
+            if (permissions.length > 0 && !permissions.some(permission => userPermissionNames.includes(permission))) {
+                return res.status(403).json({success : false , message: 'Forbidden: Insufficient permission' });
+            }
+ 
+             
+
+            // If user has the required roles or permissions, grant access
+            next();
+        } catch (error) {
+            return res.status(500).json({ message: 'Internal Server Error' });
+        }
+           
        };
    }
    
@@ -58,7 +83,7 @@ export const ExisteUser = async( req : Request , res : Response, next : NextFunc
                     message : "User already Existe"
                 })
             }
-            next()
+           next()
     } catch (error) {
         res.status(500).json({success : false, error : "User not registered "+ error})
     }

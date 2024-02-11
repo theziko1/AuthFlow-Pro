@@ -8,7 +8,7 @@ export const AddRule = async (req : Request, res : Response) => {
       try {
         const valid = validateRules(req.body)
          if (valid.error) {
-            return res.status(401).json({error : valid.error.message})
+            return res.status(401).json({success : false ,error : valid.error.message})
          }
         const { name , permissions } =req.body
         await Roles.create({

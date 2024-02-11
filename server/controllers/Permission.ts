@@ -7,7 +7,7 @@ export const  createPermission = async(req : Request, res : Response)  => {
     try {
       const valid = validatePermission(req.body)
          if (valid.error) {
-            return res.status(401).json({error : valid.error.message})
+            return res.status(401).json({success : false ,error : valid.error.message})
          }
       const { name, description } = req.body;
   
