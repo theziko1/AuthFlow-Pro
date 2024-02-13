@@ -1,14 +1,15 @@
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import bg from '../assets/bg.svg'
 import { MdOutlineEmail } from "react-icons/md";
 import { RiLock2Line } from "react-icons/ri";
 import { FaRegUser } from "react-icons/fa";
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import React, { useState } from 'react';
+import React, { useState  , useEffect} from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { signUpUser } from '@/features/auth/authSlice';
+import { signUpUser  , reset} from '@/features/auth/authSlice';
 import { AppDispatch , RootState } from '@/app/store';
+import { toast } from 'react-toastify';
 
 
 
@@ -20,9 +21,25 @@ const Signup = () => {
     email: '',
     password: '',
   });
+  
+
+  
+  const Navigate = useNavigate()
 
   const dispatch: AppDispatch = useDispatch();
-  const { loading, error } = useSelector((state: RootState) => state.auth);
+  const {user , isLoading , isSuccess , message, isError } = useSelector((state: RootState) => state.auth);
+
+  useEffect(() => {
+    if (isError) {
+      toast.error(message)
+      return
+    }
+    if (isSuccess || user) {
+      return Navigate('/')
+    }
+
+    dispatch(reset())
+  }, [user , isError , isSuccess , message , Navigate , dispatch])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -30,8 +47,13 @@ const Signup = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    console.log(user)
     dispatch(signUpUser(formData));
+    
   };
+
+
+  
   return (
     
   
@@ -47,8 +69,9 @@ const Signup = () => {
             <p className="font-[Poppins]  w-full font-normal ">If you already have an account register </p>
             <p className="font-[Poppins]  w-full font-normal ">You can <Link to="/sign-in" className="ml-2 text-orange-500 font-bold">Login Here !</Link></p>
          </div>
-            
+           
             <div className="font-[Poppins] block pl-2 justify-center w-full my-4">
+              
               <label  htmlFor="">Email</label>
               <div className="w-full flex flex-row gap-2">
               <MdOutlineEmail />
@@ -69,8 +92,10 @@ const Signup = () => {
             <Input type="password" name="password"  value={formData.password} onChange={handleChange} placeholder="Enter your password"  />
               </div>
             </div>
-            <Button variant="outline" disabled={loading} onClick={handleSubmit} size="lg" className="w-full mt-14 rounded-2xl bg-orange-500 text-white">{loading ? 'Loading...' : 'Register'}</Button>
-            {error && <div className='bg-red-500'>{error}</div>}
+            
+            <Button variant="outline" disabled={isLoading} onClick={handleSubmit} size="lg" className="w-full mt-14 rounded-2xl bg-orange-500 text-white">{isLoading ? 'Loading...' : 'Register'}</Button>
+          
+            
         </div>
     </div>
   )

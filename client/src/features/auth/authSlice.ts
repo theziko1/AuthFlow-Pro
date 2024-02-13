@@ -1,7 +1,6 @@
 
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import axios from 'axios';
-
+import authService from '../authService';
 
 
 
@@ -13,75 +12,102 @@ interface User {
 
 interface AuthState {
   user: User | null;
-  token: string | null;
-  loading: boolean;
-  error: string | null;
+  isLoading: boolean;
+  isError: boolean;
+  isSuccess: boolean
+  message: any
 }
 
-export const signUpUser = createAsyncThunk<{user: User; token: string}, User,{ rejectValue: string }>(
+const user = JSON.parse(localStorage.getItem('user') as string)
+
+export const signUpUser = createAsyncThunk<{user : User},User, { rejectValue: string }>(
   'auth/signUpUser',
-  async (userData, { rejectWithValue }) => {
+  async (user, { rejectWithValue }) => {
     try {
-      const response = await axios.post<{user: User; token: string}>('http://localhost:5000/signup', userData);
-      return response.data
+      return await authService.register(user)
     } catch (error : any) {
-      return rejectWithValue(error.response.data);
+      const message =  error.response.data.error || error.response.data.message
+       
+      return rejectWithValue(message);
     }
   }
 );
 
-export const loginUser = createAsyncThunk<{user: User; token: string}, User, { rejectValue: string }>(
+export const loginUser = createAsyncThunk<{user: User}, User, { rejectValue: string }>(
   'auth/loginUser',
-  async (userData, { rejectWithValue }) => {
+  async (user, { rejectWithValue }) => {
     try {
-      const response = await axios.post<{user: User; token: string}>('http://localhost:5000/signin', userData);
-      return response.data;
+      return await authService.login(user)
     } catch (error : any) {
-      return rejectWithValue(error.response.data);
+      const message = error.response.data.error || error.response.data.message
+      return rejectWithValue(message);
     }
+  }
+);
+export const logOutUser = createAsyncThunk(
+  'auth/logOut',
+  async () => {
+     authService.logout()
   }
 );
 
 const initialState: AuthState = {
-  user: null,
-  token: null,
-  loading: false,
-  error: null,
+  user: user ? user : null,
+  isLoading: false,
+  isError: false,
+  isSuccess : false,
+  message : ""
 };
 
 const authSlice = createSlice({
   name: 'auth',
   initialState,
-  reducers: {},
+  reducers: {
+    reset: (state) => {
+      state.isLoading = false
+      state.isSuccess = false
+      state.isError = false
+      state.message = ''
+    },
+  },
   extraReducers: (builder) => {
     builder
       .addCase(signUpUser.pending, (state) => {
-        state.loading = true;
-        state.error = null;
+        state.isLoading = true
       })
       .addCase(signUpUser.fulfilled, (state, action) => {
-        state.loading = false;
-        state.user = action.payload.user;
-        state.token = action.payload.token;
+        state.isLoading = false
+        state.isSuccess = true
+        state.user = action.payload.user
       })
       .addCase(signUpUser.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload as string;
+        state.isLoading = false
+        state.isError = true
+        state.message = action.payload
+        state.user = null
       })
       .addCase(loginUser.pending, (state) => {
-        state.loading = true;
-        state.error = null;
+        state.isLoading = true
       })
       .addCase(loginUser.fulfilled, (state, action) => {
-        state.loading = false;
-        state.user = action.payload.user;
-        state.token = action.payload.token;
+        state.isLoading = false
+        state.isSuccess = true
+        state.user = action.payload.user
       })
       .addCase(loginUser.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload as string;
-      });
+        state.isLoading = false
+        state.isError = true
+        state.message = action.payload
+        state.user = null
+      })
+      
+      .addCase(logOutUser.fulfilled, (state) => {
+        state.user = null;
+      })
+      
   },
 });
 
+
+export const { reset } = authSlice.actions
 export default authSlice.reducer;

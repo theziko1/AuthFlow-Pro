@@ -28,7 +28,6 @@ export const GetRules = async (req : Request, res : Response) => {
       const RulesFound = await Roles.find().populate({
         path: 'permissions',
         select: '-_id -__v' ,
-         
     })
       if (RulesFound) {
         return  res.status(200).json({success:true ,message:"Successfully fetched Rules",RulesFound})

@@ -1,31 +1,47 @@
-import { Link } from 'react-router-dom'
+import { Link, useNavigate , useLocation } from 'react-router-dom'
 import bg from '../assets/bg.svg'
 import { RiLock2Line } from "react-icons/ri";
 import { FaRegUser } from "react-icons/fa";
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import React, { useState } from 'react';
+import React, { useState , useEffect} from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { loginUser } from '@/features/auth/authSlice';
+import { loginUser , reset } from '@/features/auth/authSlice';
 import { AppDispatch, RootState } from '@/app/store';
+import { toast } from 'react-toastify';
 
 
 const Signin = () => {
-  const [formData, setFormData] = useState({
-    username: '',
-    password: '',
-  });
+ 
+  const [username , setUsername] = useState("")
+  const [password , setPassword] = useState("")
+
+  
+
+  const Navigate = useNavigate()
+  const location = useLocation();
+    const from = location.state?.from?.pathname || "/";
 
   const dispatch: AppDispatch = useDispatch();
-  const { loading, error } = useSelector((state: RootState) => state.auth);
+  const { user, message , isSuccess ,isLoading, isError } = useSelector((state: RootState) => state.auth);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+  useEffect(() => {
+    if (isError) {
+      toast.error(message)
+    }
+    if (isSuccess || user) {
+      Navigate(from, { replace: true });
+    }
+
+    dispatch(reset())
+  }, [user , isError , isSuccess , message , Navigate , dispatch])
+
+  
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    dispatch(loginUser(formData));
+    e.preventDefault(); 
+    dispatch(loginUser({username ,password}));
+   
   };
   
 
@@ -42,7 +58,7 @@ const Signin = () => {
           <div className=" w-full flex justify-start flex-col mb-5">
             <h1 className=" mx-0 w-full mb-3 font-[Poppins] font-medium text-3xl">Sign In</h1>
             <p className="font-[Poppins]  w-full font-normal ">If you don’t have an account register </p>
-            <p className="font-[Poppins]  w-full font-normal ">You can <Link to="/" className="ml-2 text-orange-500 font-bold">Register Here !</Link></p>
+            <p className="font-[Poppins]  w-full font-normal ">You can <Link to="/sign-up" className="ml-2 text-orange-500 font-bold">Register Here !</Link></p>
          </div>
             
             
@@ -50,18 +66,18 @@ const Signin = () => {
               <label htmlFor="">Username</label>
               <div className="w-full flex flex-row gap-2">
               <FaRegUser />
-            <Input type="text" name="username" value={formData.username} onChange={handleChange} placeholder="Enter your username" />
+            <Input type="text" name="username" value={username} onChange={(e) => setUsername(e.target.value)} placeholder="Enter your username" />
               </div>
             </div>
             <div className="font-[Poppins] block pl-2 justify-center w-full my-4">
               <label htmlFor="">Password</label>
               <div className="w-full flex flex-row gap-2">
               <RiLock2Line />
-            <Input type="password" name="password" value={formData.password} onChange={handleChange} placeholder="Enter your password"  />
+            <Input type="password" name="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Enter your password"  />
               </div>
             </div>
-            <Button variant="outline" disabled={loading} onClick={handleSubmit} size="lg" className="w-full mt-14 rounded-2xl bg-orange-500 text-white">{loading ? 'Loading...' : 'Login'}</Button>
-            {error && <p>{error}</p>}
+            <Button variant="outline" disabled={isLoading} onClick={handleSubmit} size="lg" className="w-full mt-14 rounded-2xl bg-orange-500 text-white">{isLoading ? 'Loading...' : 'Login'}</Button>
+            
         </div>
     </div>
   )
