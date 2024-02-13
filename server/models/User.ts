@@ -4,15 +4,15 @@ export interface IUser extends Document {
       username : String,
       email : String,
       password : String,
-      roles : Types.ObjectId[]
+      roles : Types.ObjectId
 }
 
 export type UserDocument = HydratedDocument<IUser>
 
+
 export interface UserModel extends Model<IUser> {
     build() :void
 }
-
 
 const UserSchema = new Schema<IUser,UserModel>({
     username : {
@@ -29,11 +29,12 @@ const UserSchema = new Schema<IUser,UserModel>({
         type : String,
         required : true
     },
-    roles : [{
+    roles : {
         type : Schema.Types.ObjectId,
-        ref : 'Roles',
-        required : true
-    }]
+        ref : 'Role',
+        required : true,
+        
+    }
 
 })
 
@@ -47,3 +48,10 @@ export const User  = model<IUser,UserModel>('User',UserSchema)
 
 
 User.build()
+
+
+
+
+
+
+

@@ -1,9 +1,10 @@
 import { User } from "../models/User";
 import { Request , Response } from "express";
-import { genSalt , hash , compare} from "bcrypt"
+import { genSalt , hash , compare}  from "bcrypt"
 import jwt from "jsonwebtoken"
 import { config } from "dotenv";
 import { validateLogin, validateRegister } from "../middlewares/Validate";
+import { Roles } from "../models/Roles";
 
 
 config()
@@ -28,24 +29,31 @@ export const SignUp = async (req : Request, res : Response) => {
 }
 
 export const SignIn = async (req : Request , res : Response) => {
-       try {
-         const valid = validateLogin(req.body)
-         if (valid.error) {
-            return res.status(401).json({success : false ,error : valid.error.message})
-         }
-        const { username , password} = req.body
-        const UserLogin = await User.findOne({ username })
-        if(!UserLogin) {
-            return res.status(401).json({success : false,error : "Authentication failed"})
-          }
-          const MatchedPass = compare(password,UserLogin.password as string)
-          if (!MatchedPass) {
-             return res.status(401).json({success : false, error : "Authentication failed"})
-          }
+         const { username, password } = req.body;
+         try {
+           // Verify if input is empty
+           if (!username || !password) {
+             return res.status(400).json({success : false , message: 'Invalid information' });
+           }
+       
+           const userLogin = await User.findOne({ username }).populate({path: 'roles', populate : {path : 'permissions'}, select: '-_id -__v'}  );
+       
+           if (!userLogin) {
+             console.log('User does not exist');
+             return res.status(404).json({success : false , message : 'User does not exist'});
+           }
+       
+           
+           const match = await compare(password, userLogin.password as string);
+       
+           
+           if (!match) {
+             return res.status(400).json({success : false , message : 'Username or password is incorrect'});
+           }
           const token = jwt.sign( {
-            userId: UserLogin.id,
-            username: UserLogin.username,
-            roles: UserLogin.roles, 
+            userId: userLogin.id,
+            username: userLogin.username,
+            roles: userLogin.roles, 
         }, process.env.SECRET_KEY as string, {
              expiresIn: '6h',
              });
@@ -54,7 +62,7 @@ export const SignIn = async (req : Request , res : Response) => {
             secure: process.env.NODE_ENV === "production",
             maxAge: 86400000,
           })   
-          res.status(200).json({ success : true, message : "login successfully", data : token}) 
+          res.status(200).json({ success : true, message : "login successfully", data : token, user : userLogin}) 
        } catch (error) {
         res.status(500).json({success : false ,error : "login failed "+error})
        }

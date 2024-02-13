@@ -2,7 +2,7 @@ import { Document, HydratedDocument, model, Model , Schema, Types } from "mongoo
 
 export interface IRoles extends Document {
      name : String,
-     permissions : Types.ObjectId
+     permissions : Types.ObjectId[]
 }
 
 
@@ -20,7 +20,8 @@ export interface RoleModel extends Model<IRoles> {
     },
     permissions :[{
         type : Schema.Types.ObjectId,
-        ref : 'Permission'
+        ref : 'Permission',
+       
     }]
  })
 
@@ -32,3 +33,6 @@ export interface RoleModel extends Model<IRoles> {
 
 
 Roles.build()
+
+
+
