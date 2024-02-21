@@ -12,13 +12,13 @@ const Home = () => {
     const logout = async () => {
         dispatch(logOutUser() as any)
         dispatch(reset())
-        navigate('/linkpage');
+        navigate('/sign-in');
     }
 
     return (
       <>
       <Header/>
-        <section className="bg-orange-500 w-1/4 rounded-xl m-auto mt-11 font-[Inter] flex flex-col justify-center items-center p-4">
+        <section className="bg-amber-500 w-1/3 rounded-xl m-auto mt-11 font-[Inter] flex flex-col justify-center items-center p-4">
             <h1 className="text-white p-2- text-4xl font-bold font-Gamja">Home</h1>
             <br />
             <p className="text-white p-2 rounded bg-green-500">You are logged in!</p>
