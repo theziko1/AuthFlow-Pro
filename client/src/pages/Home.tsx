@@ -12,7 +12,7 @@ const Home = () => {
     const logout = async () => {
         dispatch(logOutUser() as any)
         dispatch(reset())
-        navigate('/linkpage');
+        navigate('/sign-in');
     }
 
     return (

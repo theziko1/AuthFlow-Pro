@@ -47,3 +47,6 @@ swaggerDocs(app, PORT as string)
 app.listen(PORT,()=>{
     console.log(`server running on PORT ${PORT}`)
 })
+
+
+export default app;

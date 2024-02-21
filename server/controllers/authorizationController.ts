@@ -28,7 +28,7 @@ export const assignPermission = async (req : Request, res : Response) => {
         if (!role || !permission) {
             return res.status(404).json({success : false , message: 'Role or Permission not found' });
         }
-        role.permissions = permission._id;
+        role.permissions.push(permission._id);
         await role.save();
         res.status(200).json({success : true , message: 'Permission assigned to role successfully' });
     } catch (error) {
