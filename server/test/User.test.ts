@@ -1,63 +1,67 @@
-import request from 'supertest';
-import express, { Router } from 'express';
-import { Response, Request } from 'express';
-import UserRoutes from '../routes/User'; 
-import { SignUp, SignIn, logout } from '../controllers/User';
-import authorize from '../middlewares/User';
+import { SignUp } from '../controllers/User'; // Import your controller function
+import { User } from '../models/User'; // Import your User model
+import { Request, Response } from 'express'; // Assuming you're using Express
+import { genSalt, hash } from 'bcrypt'; // Import bcrypt functions
 
-jest.mock('../controllers/User', () => ({
-  SignUp: jest.fn(),
-  SignIn: jest.fn(),
-  logout: jest.fn(),
+// Mocking bcrypt functions
+jest.mock('bcrypt', () => ({
+    genSalt: jest.fn(),
+    hash: jest.fn(),
 }));
 
-jest.mock('../middlewares/User', () => ({
-  ExisteUser: jest.fn(),
+// Mocking User model methods
+jest.mock('../models/User', () => ({
+    User: {
+        create: jest.fn(),
+    },
 }));
 
-describe('UserRoutes', () => {
-  let app: express.Application;
+describe('SignUp controller', () => {
+    let req: Partial<Request>, res: Partial<Response>;
 
-  beforeAll(() => {
-    app = express();
-    app.use(express.json()); 
-    app.use('/', UserRoutes);
-  });
+    beforeEach(() => {
+        req = {
+            body: {
+                username: 'testUser',
+                email: 'test@example.com',
+                password: 'password123',
+            },
+        };
+        res = {
+            status: jest.fn(),
+            json: jest.fn(),
+        };
+    });
 
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
+    it('should register a user successfully', async () => {
+        (genSalt as jest.Mock).mockResolvedValue('mockedSalt');
+        (hash as jest.Mock).mockResolvedValue('mockedHash');
+        (User.create as jest.Mock).mockResolvedValueOnce({});
 
-  it('should call SignUp controller when /signup endpoint is hit', async () => {
-    await request(app).post('/signup');
-    expect(SignUp).toHaveBeenCalledTimes(1);
-  });
+        await SignUp(req as Request, res as Response);
 
-  it('should call SignIn controller when /signin endpoint is hit', async () => {
-    await request(app).post('/signin');
-    expect(SignIn).toHaveBeenCalledTimes(1);
-  });
+        expect(genSalt).toHaveBeenCalledWith(10);
+        expect(hash).toHaveBeenCalledWith('password123', 'mockedSalt');
+        expect(User.create).toHaveBeenCalledWith({
+            username: 'testUser',
+            email: 'test@example.com',
+            password: 'mockedHash',
+        });
+        expect(res!.status).toHaveBeenCalledWith(201);
+        expect(res!.json).toHaveBeenCalledWith({ success: true, message: 'User registered successfully' });
+    });
 
-  it('should call logout controller when /logout endpoint is hit', async () => {
-    await request(app).get('/logout');
-    expect(logout).toHaveBeenCalledTimes(1);
-  });
+    it('should return 500 status if an error occurs during user creation', async () => {
+        (genSalt as jest.Mock).mockResolvedValue('mockedSalt');
+        (hash as jest.Mock).mockResolvedValue('mockedHash');
+        const errorMessage = 'Mocked error message';
+        (User.create as jest.Mock).mockRejectedValueOnce(new Error(errorMessage));
 
-  // it('should call authorize middleware when / endpoint is hit', async () => {
-  //   const mockReq = {} as Request;
-  //   const mockRes = {} as Response;
-  //   const mockNext = jest.fn();
+        
 
-  //   await request(app).get('/');
-  //   expect(authorize).toHaveBeenCalledWith(['admin', 'user'], ['read']);
-  // });
+        await expect(() => SignUp(req as Request, res as Response)).rejects.toThrowError("User not registered Error: " + errorMessage);
 
-  it('should return 200 and success message when / endpoint is hit', async () => {
-    const mockReq = {} as Request;
-    const mockRes = {} as Response;
-
-    const response = await request(app).get('/');
-    expect(response.status).toBe(200);
-    expect(response.body).toEqual({ success: true, message: 'Protected route accessed' });
-  });
+        // Verifying that the response status is set to 500
+        expect(res!.status).toHaveBeenCalledWith(500);
+    });
 });

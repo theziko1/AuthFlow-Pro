@@ -32,7 +32,7 @@ const UserSchema = new Schema<IUser,UserModel>({
     roles : {
         type : Schema.Types.ObjectId,
         ref : 'Role',
-        required : true,
+        
         
     }
 
