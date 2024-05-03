@@ -3,7 +3,7 @@ import axios from 'axios'
 
 // Register user
 const register = async (userData : any) => {
-  const response = await axios.post('http://localhost:5000/signup', userData)
+  const response = await axios.post('https://authflow-pro.onrender.com/signup', userData)
 
   if (response.data) {
     localStorage.setItem('user', JSON.stringify(response.data))
@@ -15,7 +15,7 @@ const register = async (userData : any) => {
 // Login user
 const login = async (userData : any) => {
     
-    const response = await axios.post('http://localhost:5000/signin', userData)
+    const response = await axios.post('https://authflow-pro.onrender.com/signin', userData)
 
     if (response.data) {
       localStorage.setItem('user', JSON.stringify(response.data.data)) 
